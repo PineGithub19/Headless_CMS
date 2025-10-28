@@ -88,12 +88,37 @@ WSGI_APPLICATION = "mysite.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+# Database configuration: use MySQL if env vars are provided, otherwise fallback to SQLite
+db_engine = os.getenv("DB_ENGINE")
+db_name = os.getenv("DATABASE_NAME")
+db_user = os.getenv("DATABASE_USER")
+db_password = os.getenv("DATABASE_PASSWORD")
+db_host = os.getenv("DATABASE_HOST", "localhost")
+db_port = os.getenv("DATABASE_PORT")
+
+if db_engine == "mysql" or (db_name and db_user and db_password and db_host):
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": db_name or "headless_cms",
+            "USER": db_user or "wagtail_user",
+            "PASSWORD": db_password or "wagtail_pass",
+            "HOST": db_host,
+            "PORT": db_port or "3306",
+            "OPTIONS": {
+                "sql_mode": "STRICT_TRANS_TABLES",
+                "charset": "utf8mb4",
+                "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+            },
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+        }
+    }
 
 
 # Password validation

@@ -17,8 +17,11 @@ ENV PYTHONUNBUFFERED=1 \
 # Install system packages required by Wagtail and Django.
 RUN apt-get update --yes --quiet && apt-get install --yes --quiet --no-install-recommends \
     build-essential \
+    pkg-config \
     libpq-dev \
+    default-libmysqlclient-dev \
     libmariadb-dev \
+    netcat-openbsd \
     libjpeg62-turbo-dev \
     zlib1g-dev \
     libwebp-dev \
@@ -58,3 +61,10 @@ RUN python manage.py collectstatic --noinput --clear
 #   phase facilities of your hosting platform. This is used only so the
 #   Wagtail instance can be started with a simple "docker run" command.
 CMD set -xe; python manage.py migrate --noinput; gunicorn mysite.wsgi:application
+# CMD set -xe; \
+#     if [ "${DB_ENGINE}" = "mysql" ]; then \
+#         echo "Waiting for MySQL at ${DATABASE_HOST:-mysql}:${DATABASE_PORT:-3306}..."; \
+#         until nc -z ${DATABASE_HOST:-mysql} ${DATABASE_PORT:-3306}; do sleep 1; done; \
+#     fi; \
+#     python manage.py migrate --noinput; \
+#     gunicorn mysite.wsgi:application
